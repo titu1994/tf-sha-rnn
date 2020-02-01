@@ -409,18 +409,6 @@ if __name__ == '__main__':
 
     model.compile(optimizer='adam', loss='mse')
 
-    # with tf.GradientTape() as tape:
-    #     x = tf.zeros([10, 25], dtype=tf.int32)
-    #
-    #     h, new_hidden, new_mems = model(x, training=True)
-    #     h, new_hidden, new_mems = model.call(x, hidden=new_hidden, mems=new_mems, training=True)
-    #     # h = model(x, training=True)
-    #
-    #     loss = tf.reduce_sum(h)
-
-    # # Test gradient tape
-    # grad = tape.gradient(loss, model.trainable_variables)
-
     x = tf.zeros([10, 25], dtype=tf.int32)
     loss, grads = model_forward_with_grads(model, x)
 
