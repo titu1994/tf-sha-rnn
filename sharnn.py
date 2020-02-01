@@ -342,9 +342,10 @@ class SHARNN(tf.keras.Model):
         in_seqlen = tf.shape(inputs)[1]
         out_seqlen = tf.shape(e)[1]
 
-        if mems is not None:
-            max_mem = self.num_max_positions - out_seqlen
-            mems = [m[-max_mem:] for m in mems]
+        # TODO: See how to allow limiting the amount of memory
+        # if mems is not None:
+        #     max_mem = tf.cast(self.num_max_positions - out_seqlen, tf.int32)
+        #     mems = [m[-max_mem:] for m in mems]
 
         # total_len = in_seqlen + (len(mems[0]) if mems else 0)
 
@@ -389,6 +390,20 @@ class SHARNN(tf.keras.Model):
         return output
 
 
+@tf.function
+def model_forward_with_grads(model, x):
+    with tf.GradientTape() as tape:
+        h, new_hidden, new_mems = model(x, training=True)
+        h, new_hidden, new_mems = model(x, hidden=new_hidden, mems=new_mems, training=True)
+        # h = model(x, training=True)
+
+        loss = tf.reduce_sum(h)
+
+    grad = tape.gradient(loss, model.trainable_variables)
+
+    return loss, grad
+
+
 if __name__ == '__main__':
 
     model = SHARNN(num_token=1000, embed_dim=100, num_hid=200, num_layers=2,
@@ -396,17 +411,20 @@ if __name__ == '__main__':
 
     model.compile(optimizer='adam', loss='mse')
 
-    with tf.GradientTape() as tape:
-        x = tf.zeros([10, 25], dtype=tf.int32)
+    # with tf.GradientTape() as tape:
+    #     x = tf.zeros([10, 25], dtype=tf.int32)
+    #
+    #     h, new_hidden, new_mems = model(x, training=True)
+    #     h, new_hidden, new_mems = model.call(x, hidden=new_hidden, mems=new_mems, training=True)
+    #     # h = model(x, training=True)
+    #
+    #     loss = tf.reduce_sum(h)
 
-        h, new_hidden, new_mems = model(x, training=True)
-        h, new_hidden, new_mems = model.call(x, hidden=new_hidden, mems=new_mems, training=True)
-        # h = model(x, training=True)
+    # # Test gradient tape
+    # grad = tape.gradient(loss, model.trainable_variables)
 
-        loss = tf.reduce_sum(h)
-
-    # Test gradient tape
-    grad = tape.gradient(loss, model.trainable_variables)
+    x = tf.zeros([10, 25], dtype=tf.int32)
+    loss, grads = model_forward_with_grads(model, x)
 
     # Test predict
     model.predict(x)
