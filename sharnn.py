@@ -298,7 +298,7 @@ class SHARNN(tf.keras.Model):
 
     def __init__(self, num_token, embed_dim, num_hid, num_layers,
                  dropout=0.5, dropout_h=0.5, dropout_i=0.5,
-                 return_hidden=True, return_mem=True):
+                 return_hidden=False, return_mem=False):
         super(SHARNN, self).__init__()
 
         num_embeddings = num_token
