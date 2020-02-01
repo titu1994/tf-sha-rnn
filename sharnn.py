@@ -390,21 +390,19 @@ class SHARNN(tf.keras.Model):
         return output
 
 
-@tf.function
-def model_forward_with_grads(model, x):
-    with tf.GradientTape() as tape:
-        h, new_hidden, new_mems = model(x, training=True)
-        h, new_hidden, new_mems = model(x, hidden=new_hidden, mems=new_mems, training=True)
-        # h = model(x, training=True)
-
-        loss = tf.reduce_sum(h)
-
-    grad = tape.gradient(loss, model.trainable_variables)
-
-    return loss, grad
-
-
 if __name__ == '__main__':
+    @tf.function
+    def model_forward_with_grads(model, x):
+        with tf.GradientTape() as tape:
+            h, new_hidden, new_mems = model(x, training=True)
+            h, new_hidden, new_mems = model(x, hidden=new_hidden, mems=new_mems, training=True)
+            # h = model(x, training=True)
+
+            loss = tf.reduce_sum(h)
+
+        grad = tape.gradient(loss, model.trainable_variables)
+
+        return loss, grad
 
     model = SHARNN(num_token=1000, embed_dim=100, num_hid=200, num_layers=2,
                    return_hidden=True, return_mem=True)
